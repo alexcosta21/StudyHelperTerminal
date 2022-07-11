@@ -28,6 +28,7 @@ struct question
 void print_menu(){
     printf("\n");
     printf("1: Create new question \n");
+    printf("9: Show this menu \n");
     printf("0: Exit program \n");
     printf("\n");
 
@@ -35,12 +36,14 @@ void print_menu(){
 
 // If q_var is NULL then inicialize it
 void create_question(){
-    char *q;
-    q = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
-    printf("Write your question: \n");
-    fgets(q,MAX_CHARACTER_SIZE,stdin);
-    printf("Your question was: %s", q);
-    free(q);
+    char *q_string;
+
+    q_string = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
+
+    fgets(q_string,MAX_CHARACTER_SIZE,stdin);
+    printf("Your question was: %s", q_string);
+    free(q_string);
+
 
 
 
@@ -61,9 +64,10 @@ int main(){
     int menu_selection;
 
     printf("Welcome! \n");
+    print_menu();
     while(run_condition){
-        print_menu();
         scanf("%d", &menu_selection);
+        getchar();
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
@@ -71,11 +75,16 @@ int main(){
                 break;
             
             case 1:
+                printf("Write your question: \n");
                 create_question();
+                break;
+
+            case 9:
+                print_menu();
                 break;
             
             default:
-                printf("Choose an available option \n");
+                printf("Choose an available option, select 9 to show menu \n");
                 break;
         }
     }
