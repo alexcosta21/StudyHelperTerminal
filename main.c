@@ -19,7 +19,7 @@
 #define MAX_POSSIBLE_ANSWERS 5
 
 
-struct question
+struct question // Struct that stores our question object
 {
     char *question;
     char **answers; // Array of answers
@@ -36,20 +36,23 @@ void print_menu(){
 
 }
 
-// If q_var is NULL then inicialize it
 void create_question(struct question q[], int index){
     char *q_string;
 
+    // Memory allocation
     q_string = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
     q[index].question = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
 
+    // Read user input
     fgets(q_string,MAX_CHARACTER_SIZE,stdin);
     strcpy(q[index].question,q_string);
     printf("Your question was: %s", q[index].question);
+    
     free(q_string);
 
 }
 
+// Procedure that frees all previus memory allocations
 void free_questions(struct question q[], int index){
     int i = 0;
 
@@ -77,7 +80,7 @@ int main(){
     while(run_condition){
         printf("Choose one option: ");
         scanf("%d", &menu_selection);
-        getchar();
+        getchar(); // This consumes the '\n' char entered by the user after clicking 'ENTER'
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
