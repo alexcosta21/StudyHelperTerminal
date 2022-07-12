@@ -14,8 +14,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_CHARACTER_SIZE 100
+#define MAX_CHARACTER_SIZE 1024
+#define MAX_NUMBER_QUESTIONS 50
 #define MAX_POSSIBLE_ANSWERS 5
+
 
 struct question
 {
@@ -35,19 +37,25 @@ void print_menu(){
 }
 
 // If q_var is NULL then inicialize it
-void create_question(){
+void create_question(struct question q[], int index){
     char *q_string;
 
     q_string = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
+    q[index].question = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
 
     fgets(q_string,MAX_CHARACTER_SIZE,stdin);
-    printf("Your question was: %s", q_string);
+    strcpy(q[index].question,q_string);
+    printf("Your question was: %s", q[index].question);
     free(q_string);
 
+}
 
+void free_questions(struct question q[], int index){
+    int i = 0;
 
-
-    
+    for(i;i<index;i++){
+        free(q[i].question);
+    }
 }
 
 /*
@@ -59,9 +67,10 @@ void create_question(){
 */
 
 int main(){
-    struct question q_global[50];
+    struct question q_global[MAX_NUMBER_QUESTIONS];
     int run_condition = 1;
     int menu_selection;
+    int index = 0;
 
     printf("Welcome! \n");
     print_menu();
@@ -71,12 +80,14 @@ int main(){
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
+                free_questions(q_global,index);
                 run_condition = 0;
                 break;
             
             case 1:
                 printf("Write your question: \n");
-                create_question();
+                create_question(q_global,index);
+                index++;
                 break;
 
             case 9:
