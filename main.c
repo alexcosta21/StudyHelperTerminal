@@ -75,6 +75,7 @@ int main(){
     printf("Welcome! \n");
     print_menu();
     while(run_condition){
+        printf("Choose one option: ");
         scanf("%d", &menu_selection);
         getchar();
         switch (menu_selection){
@@ -85,7 +86,7 @@ int main(){
                 break;
             
             case 1:
-                printf("Write your question: \n");
+                printf("Write your question: ");
                 create_question(q_global,index);
                 index++;
                 break;
