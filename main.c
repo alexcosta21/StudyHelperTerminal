@@ -18,14 +18,19 @@
 #define MAX_NUMBER_QUESTIONS 50
 #define MAX_POSSIBLE_ANSWERS 5
 
+struct answers{
+    char answer_string[MAX_CHARACTER_SIZE];
+};
 
 struct question // Struct that stores our question object
 {
-    char *question;
-    char **answers; // Array of answers
+    char question[MAX_CHARACTER_SIZE];
+    struct answers ans[MAX_POSSIBLE_ANSWERS]; // Array of answers
     int index_correct_answer;
 
 };
+
+
 
 void print_menu(){
     printf("\n");
@@ -37,29 +42,17 @@ void print_menu(){
 }
 
 void create_question(struct question q[], int index){
-    char *q_string;
-
-    // Memory allocation
-    q_string = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
-    q[index].question = malloc(sizeof(char) * MAX_CHARACTER_SIZE);
+    char q_string[MAX_CHARACTER_SIZE];
 
     // Read user input
-    fgets(q_string,MAX_CHARACTER_SIZE,stdin);
-    strcpy(q[index].question,q_string);
-    printf("Your question was: %s", q[index].question);
+    fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
+    printf("Write the first possible answer: ");
+    fgets(q[index].ans[0].answer_string,MAX_CHARACTER_SIZE,stdin);
+    printf("This is your fist answer: %s",q[index].ans[0].answer_string);
     
-    free(q_string);
 
 }
 
-// Procedure that frees all previus memory allocations
-void free_questions(struct question q[], int index){
-    int i = 0;
-
-    for(i;i<index;i++){
-        free(q[i].question);
-    }
-}
 
 /*
     We need a global array of all questions structures
@@ -84,7 +77,6 @@ int main(){
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
-                free_questions(q_global,index);
                 run_condition = 0;
                 break;
             
