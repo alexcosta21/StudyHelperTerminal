@@ -43,12 +43,31 @@ void print_menu(){
 
 void create_question(struct question q[], int index){
     char q_string[MAX_CHARACTER_SIZE];
+    int i = 0;
+    int right_ans_index;
+    int control_input = 1;
 
     // Read user input
     fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
-    printf("Write the first possible answer: ");
-    fgets(q[index].ans[0].answer_string,MAX_CHARACTER_SIZE,stdin);
-    printf("This is your fist answer: %s",q[index].ans[0].answer_string);
+    for(i;i<MAX_POSSIBLE_ANSWERS;i++){
+        printf("Write the possible answer with index %d : ", i);
+        fgets(q[index].ans[i].answer_string,MAX_CHARACTER_SIZE,stdin);
+    }
+    printf("Which one is the right answer? \n");
+    while (control_input){
+        printf("Write the index [0-4] of the right answer: ");
+        scanf("%d",&right_ans_index);
+        getchar();
+        if (right_ans_index <0 | right_ans_index >4){
+            printf("Wrong number, choose one of the answers[0-4] \n");
+        } else {
+            q[index].index_correct_answer = right_ans_index;
+            control_input = 0;
+        }
+    }
+    
+
+
     
 
 }
