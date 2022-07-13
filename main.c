@@ -30,11 +30,10 @@ struct question // Struct that stores our question object
 
 };
 
-
-
 void print_menu(){
     printf("\n");
     printf("1: Create new question \n");
+    printf("2: Prompt all stored questions and its answers \n");
     printf("9: Show this menu \n");
     printf("0: Exit program \n");
     printf("\n");
@@ -65,11 +64,28 @@ void create_question(struct question q[], int index){
             control_input = 0;
         }
     }
-    
+}
+/*
+Displays all questions and its answers that are currently stored
+*/
 
-
-    
-
+void prompt_questions(struct question q[], int index){
+    if(index == 0){
+        printf("There are not any questions stored \n");
+    } else{
+        printf("Showing all stored questions: \n \n");
+        for(int i=0;i<index;i++){
+            printf("Question %d: %s \n", i, q[i].question);
+            for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
+                if(q[i].index_correct_answer == j){
+                    printf("** Answer %d: %s", j, q[i].ans[j].answer_string);               
+                } else{
+                    printf("   Answer %d: %s", j, q[i].ans[j].answer_string);
+                }
+            }
+            printf("\n");
+        }
+    }
 }
 
 
@@ -103,6 +119,10 @@ int main(){
                 printf("Write your question: ");
                 create_question(q_global,index);
                 index++;
+                break;
+
+            case 2:
+                prompt_questions(q_global,index);
                 break;
 
             case 9:
