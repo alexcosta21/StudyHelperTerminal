@@ -1,11 +1,11 @@
 /*
     This is a program to help me study in the university
     The idea is while attending lectures, write possible exam
-    questions, its posible answers and the right one. Storing 
+    questions, its posible answers and the correct one. Storing 
     everything locally in files. 
 
     Finally, before the exam takes place, prompting random 
-    questions to the user and its possibles answers asking 
+    questions to the user and its possible answers asking 
     the user to choose the right one.
 
 
@@ -13,10 +13,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define MAX_CHARACTER_SIZE 1024
 #define MAX_NUMBER_QUESTIONS 50
 #define MAX_POSSIBLE_ANSWERS 5
+#define MAX_FILENAME_SIZE 255
+#define MAX_PATH_SIZE 1024
 
 struct answers{
     char answer_string[MAX_CHARACTER_SIZE];
@@ -34,6 +38,7 @@ void print_menu(){
     printf("\n");
     printf("1: Create new question \n");
     printf("2: Prompt all stored questions and its answers \n");
+    printf("3: Save questions to disk \n");
     printf("9: Show this menu \n");
     printf("0: Exit program \n");
     printf("\n");
@@ -52,9 +57,9 @@ void create_question(struct question q[], int index){
         printf("Write the possible answer with index %d : ", i);
         fgets(q[index].ans[i].answer_string,MAX_CHARACTER_SIZE,stdin);
     }
-    printf("Which one is the right answer? \n");
+    printf("Which one is the correct answer? \n");
     while (control_input){
-        printf("Write the index [0-4] of the right answer: ");
+        printf("Write the index [0-4] of the correct answer: ");
         scanf("%d",&right_ans_index);
         getchar();
         if (right_ans_index <0 | right_ans_index >4){
@@ -85,6 +90,53 @@ void prompt_questions(struct question q[], int index){
             }
             printf("\n");
         }
+    }
+}
+
+int save_info_in_file(struct question q[], int index){
+    FILE *save_file;
+    char user_input[MAX_FILENAME_SIZE];
+    char save_file_name[MAX_FILENAME_SIZE];
+    char cwd[MAX_PATH_SIZE];
+    char path_save_file [MAX_PATH_SIZE];
+    int i, waiting_for_permission, j;
+
+    if (index == 0){
+        printf("There are no questions to store to disk \n");
+        return 0;
+    } else {
+        printf("Do you really want to save this session to disk? \n");
+        printf("[yes|no] or [y|n]: ");
+        fgets(user_input,MAX_FILENAME_SIZE,stdin);
+        user_input[strcspn(user_input, "\n")] = 0; // Remove new line character from user input
+        waiting_for_permission = 1;
+        while(waiting_for_permission){
+            if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
+                return 0;           
+            } else if((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
+                int var = strcmp(user_input, "y\n");
+                printf("Please answer [no|n] or [yes|y] to continue \n");
+                fgets(user_input,MAX_FILENAME_SIZE,stdin);  
+                user_input[strcspn(user_input, "\n")] = 0;
+            } else {
+                waiting_for_permission = 0;
+            }
+        }
+        getcwd(cwd,sizeof(cwd)); // get current working directory
+        strcpy(path_save_file,cwd);
+        strcat(path_save_file,"/saves/");
+        mkdir(path_save_file, 0700); // create 'saves' directory        
+
+        printf("Enter name of save file: \n");
+        fgets(save_file_name,MAX_FILENAME_SIZE,stdin);
+        save_file_name[strcspn(save_file_name, "\n")] = 0;
+        strcat(path_save_file,save_file_name);
+        save_file = fopen(path_save_file,"w+"); // create save file
+        for(int i=0;i<index;i++){
+            fputs("#\n",save_file);
+            fputs(q[i].question,save_file);
+        }
+        fclose(save_file);
     }
 }
 
@@ -123,6 +175,10 @@ int main(){
 
             case 2:
                 prompt_questions(q_global,index);
+                break;
+
+            case 3:
+                save_info_in_file(q_global,index);
                 break;
 
             case 9:
