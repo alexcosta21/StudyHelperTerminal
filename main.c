@@ -127,14 +127,23 @@ int save_info_in_file(struct question q[], int index){
         strcat(path_save_file,"/saves/");
         mkdir(path_save_file, 0700); // create 'saves' directory        
 
-        printf("Enter name of save file: \n");
+        printf("Enter name of save file: \n"); // create save file
         fgets(save_file_name,MAX_FILENAME_SIZE,stdin);
         save_file_name[strcspn(save_file_name, "\n")] = 0;
         strcat(path_save_file,save_file_name);
         save_file = fopen(path_save_file,"w+"); // create save file
-        for(int i=0;i<index;i++){
-            fputs("#\n",save_file);
-            fputs(q[i].question,save_file);
+
+        for(int i=0;i<index;i++){ // loop for all questions
+            fprintf(save_file, "##%s",q[i].question); // '##' means the beginning of a new question
+
+            for(j=0;j<MAX_POSSIBLE_ANSWERS;j++){
+                if(q[i].index_correct_answer == j){
+                    fprintf(save_file, "**%s", q[i].ans[j].answer_string); // '**' indicates this is the correct answer
+                } else {
+                    fprintf(save_file, q[i].ans[j].answer_string);
+                }
+            }
+            fprintf(save_file,"\n");
         }
         fclose(save_file);
     }
@@ -147,6 +156,7 @@ int save_info_in_file(struct question q[], int index){
     Every index should point to a question structure that will
     have access to que actual question and the array of answers
     with the correct answer index too.
+
 */
 
 int main(){
