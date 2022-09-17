@@ -140,7 +140,7 @@ int save_info_in_file(struct question q[], int index){
                 if(q[i].index_correct_answer == j){
                     fprintf(save_file, "**%s", q[i].ans[j].answer_string); // '**' indicates this is the correct answer
                 } else {
-                    fprintf(save_file, q[i].ans[j].answer_string);
+                    fprintf(save_file, "%s", q[i].ans[j].answer_string);
                 }
             }
             fprintf(save_file,"\n");
