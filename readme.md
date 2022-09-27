@@ -9,6 +9,8 @@ prompt you with your questions and you'll have to choose the right answer.
 Clone the repository 
 
 ## Usage 
-Open a terminal and execute the executable
+- Open a terminal
+- Execute `gcc main.c -o main` 
+- Run the app with `./main`  
 
 

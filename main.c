@@ -45,13 +45,28 @@ void print_menu(){
 
 }
 
-/* Function that  */
+/* Function that returns user_answer from stdin without '\n' character */
 char* get_user_input(char* user_prompt, int size, char* user_answer){
-    printf("%s\n", user_prompt);
+    printf("%s", user_prompt);
     fgets(user_answer, size, stdin);
     user_answer[strcspn(user_answer, "\n")] = 0;
     return user_answer;
 } 
+
+void write_into_file (FILE* save_file, int index, struct question q[]){
+    for(int i=0;i<index;i++){ // loop for all questions
+        fprintf(save_file, "##%s",q[i].question); // '##' means the beginning of a new question
+
+        for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
+            if(q[i].index_correct_answer == j){
+                fprintf(save_file, "**%s", q[i].ans[j].answer_string); // '**' indicates this is the correct answer
+            } else {
+                fprintf(save_file, "%s", q[i].ans[j].answer_string);
+            }
+        }
+        fprintf(save_file,"\n");
+    }
+}
 
 void create_question(struct question q[], int index){
     char q_string[MAX_CHARACTER_SIZE];
@@ -110,21 +125,22 @@ int save_info_in_file(struct question q[], int index){
     int i, waiting_for_permission, j;
 
     if (index == 0){
-        printf("There are no questions to store to disk \n");
+        printf("There are not any questions to store to disk \n");
         return 0;
     } else {
         printf("Do you really want to save this session to disk? \n");
-        printf("[yes|no] or [y|n]: ");
+        get_user_input("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
+/*         printf("[yes|no] or [y|n]: ");
         fgets(user_input,MAX_FILENAME_SIZE,stdin);
-        user_input[strcspn(user_input, "\n")] = 0; // Remove new line character from user input
+        user_input[strcspn(user_input, "\n")] = 0;  */// Remove new line character from user input
         waiting_for_permission = 1;
         while(waiting_for_permission){
             if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
                 return 0;           
+
             } else if((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
-/*                 printf("Please answer [no|n] or [yes|y] to continue \n");
-                fgets(user_input,MAX_FILENAME_SIZE,stdin);  
-                user_input[strcspn(user_input, "\n")] = 0; */
+                get_user_input("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
+            
             } else {
                 waiting_for_permission = 0;
             }
@@ -134,28 +150,45 @@ int save_info_in_file(struct question q[], int index){
         strcat(path_save_file,"/saves/");
         mkdir(path_save_file, 0700); // create 'saves' directory        
 
-        printf("Enter name of save file: \n"); // create save file
+        get_user_input("Enter name of save file: \n", MAX_CHARACTER_SIZE, save_file_name);
+/*         printf("Enter name of save file: \n"); // create save file
         fgets(save_file_name,MAX_FILENAME_SIZE,stdin);
-        save_file_name[strcspn(save_file_name, "\n")] = 0;
+        save_file_name[strcspn(save_file_name, "\n")] = 0; */
         strcat(path_save_file,save_file_name);
-        save_file = fopen(path_save_file,"w+"); // create save file
+        waiting_for_permission = 1;
 
-        for(int i=0;i<index;i++){ // loop for all questions
-            fprintf(save_file, "##%s",q[i].question); // '##' means the beginning of a new question
+        /* Check if save_file_path already exist */
+        save_file = fopen(path_save_file, "r");
+        if (save_file != NULL){
+            printf("There is already a save file with the same name \n");
+            printf("Do you want to replace and override its contents? \n");
+            get_user_input("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
 
-            for(j=0;j<MAX_POSSIBLE_ANSWERS;j++){
-                if(q[i].index_correct_answer == j){
-                    fprintf(save_file, "**%s", q[i].ans[j].answer_string); // '**' indicates this is the correct answer
+            // Filtering user_input to aceptable answers
+            while (waiting_for_permission){
+                if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
+                    fclose(save_file);
+                    return 0;
+
+                } else if ((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
+                    get_user_input("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
+
                 } else {
-                    fprintf(save_file, "%s", q[i].ans[j].answer_string);
+                    waiting_for_permission = 0;
+                    fclose(save_file);
+                    save_file = fopen(path_save_file,"w+"); // open save file with write permissions
+                    write_into_file(save_file,index,q);
+                    fclose(save_file);
                 }
             }
-            fprintf(save_file,"\n");
+        } else {
+            save_file = fopen(path_save_file, "w+");
+            write_into_file(save_file,index,q);
+            fclose(save_file);
+
         }
-        fclose(save_file);
     }
 }
-
 
 /*
     We need a global array of all questions structures
