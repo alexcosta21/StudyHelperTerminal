@@ -130,9 +130,7 @@ int save_info_in_file(struct question q[], int index){
     } else {
         printf("Do you really want to save this session to disk? \n");
         get_user_input("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
-/*         printf("[yes|no] or [y|n]: ");
-        fgets(user_input,MAX_FILENAME_SIZE,stdin);
-        user_input[strcspn(user_input, "\n")] = 0;  */// Remove new line character from user input
+
         waiting_for_permission = 1;
         while(waiting_for_permission){
             if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
@@ -151,9 +149,6 @@ int save_info_in_file(struct question q[], int index){
         mkdir(path_save_file, 0700); // create 'saves' directory        
 
         get_user_input("Enter name of save file: \n", MAX_CHARACTER_SIZE, save_file_name);
-/*         printf("Enter name of save file: \n"); // create save file
-        fgets(save_file_name,MAX_FILENAME_SIZE,stdin);
-        save_file_name[strcspn(save_file_name, "\n")] = 0; */
         strcat(path_save_file,save_file_name);
         waiting_for_permission = 1;
 
@@ -204,14 +199,13 @@ int main(){
     int run_condition = 1;
     int menu_selection;
     int index = 0;
-    char* user_ans =  malloc(sizeof(char)* MAX_CHARACTER_SIZE);
 
     printf("Welcome! \n");
     print_menu();
     while(run_condition){
         printf("Choose one option: ");
         scanf("%d", &menu_selection);
-        getchar(); // This consumes the '\n' char entered by the user after clicking 'ENTER'
+        getchar(); // This consumes the '\n' char entered by the user after clicking 'ENTER'   
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
@@ -231,10 +225,6 @@ int main(){
             case 3:
                 save_info_in_file(q_global,index);
                 break;
-
-            case 4:
-                printf("%s\n", get_user_input("Hey funciona", MAX_CHARACTER_SIZE, user_ans));
-                free(user_ans);
 
             case 9:
                 print_menu();
