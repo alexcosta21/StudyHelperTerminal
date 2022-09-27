@@ -45,6 +45,14 @@ void print_menu(){
 
 }
 
+/* Function that  */
+char* get_user_input(char* user_prompt, int size, char* user_answer){
+    printf("%s\n", user_prompt);
+    fgets(user_answer, size, stdin);
+    user_answer[strcspn(user_answer, "\n")] = 0;
+    return user_answer;
+} 
+
 void create_question(struct question q[], int index){
     char q_string[MAX_CHARACTER_SIZE];
     int i = 0;
@@ -114,10 +122,9 @@ int save_info_in_file(struct question q[], int index){
             if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
                 return 0;           
             } else if((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
-                int var = strcmp(user_input, "y\n");
-                printf("Please answer [no|n] or [yes|y] to continue \n");
+/*                 printf("Please answer [no|n] or [yes|y] to continue \n");
                 fgets(user_input,MAX_FILENAME_SIZE,stdin);  
-                user_input[strcspn(user_input, "\n")] = 0;
+                user_input[strcspn(user_input, "\n")] = 0; */
             } else {
                 waiting_for_permission = 0;
             }
@@ -164,6 +171,7 @@ int main(){
     int run_condition = 1;
     int menu_selection;
     int index = 0;
+    char* user_ans =  malloc(sizeof(char)* MAX_CHARACTER_SIZE);
 
     printf("Welcome! \n");
     print_menu();
@@ -190,6 +198,10 @@ int main(){
             case 3:
                 save_info_in_file(q_global,index);
                 break;
+
+            case 4:
+                printf("%s\n", get_user_input("Hey funciona", MAX_CHARACTER_SIZE, user_ans));
+                free(user_ans);
 
             case 9:
                 print_menu();
