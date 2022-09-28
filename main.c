@@ -149,6 +149,10 @@ int save_info_in_file(struct question q[], int index){
         mkdir(path_save_file, 0700); // create 'saves' directory        
 
         get_user_input("Enter name of save file: \n", MAX_CHARACTER_SIZE, save_file_name);
+        if (strstr(save_file_name,".txt") == NULL){
+            strcat(save_file_name, ".txt");
+        } 
+        
         strcat(path_save_file,save_file_name);
         waiting_for_permission = 1;
 
