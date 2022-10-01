@@ -23,14 +23,14 @@
 #define MAX_PATH_SIZE 1024
 
 struct answers{
-    char answer_string[MAX_CHARACTER_SIZE];
+    char ans_str[MAX_CHARACTER_SIZE];
 };
 
 struct question // Struct that stores our question object
 {
     char question[MAX_CHARACTER_SIZE];
     struct answers ans[MAX_POSSIBLE_ANSWERS]; // Array of answers
-    int index_correct_answer;
+    int index_correct_ans;
 
 };
 
@@ -39,10 +39,32 @@ void print_menu(){
     printf("1: Create new question \n");
     printf("2: Prompt all stored questions and its answers \n");
     printf("3: Save questions to disk \n");
+    printf("4: Load questions from save file \n");
     printf("9: Show this menu \n");
     printf("0: Exit program \n");
     printf("\n");
 
+}
+
+void load_questions_to_program( struct question q_aux[], struct question q_global[], 
+                                int q_index_aux, int *index_global){
+    for(int i=0;i<q_index_aux;i++){
+        strcpy(q_global[i].question, q_aux[i].question);
+        for(int j = 0; j<MAX_NUMBER_QUESTIONS;j++){
+            strcpy(q_global[i].ans[j].ans_str, q_aux[i].ans[j].ans_str);
+        }
+    }
+    *index_global = q_index_aux;
+} 
+
+void parse_line(char *l_buffer, char char_del, char *ans_line, int size){
+
+    if((l_buffer[0]) == char_del && (l_buffer[1]) == char_del){
+        for(int i = 2; i < size; i++){
+            ans_line[i-2] = l_buffer[i];
+        }
+    }
+    ans_line[strcspn(ans_line, "\n")] = 0;
 }
 
 /* Function that returns user_answer from stdin without '\n' character */
@@ -53,42 +75,91 @@ char* get_user_input(char* user_prompt, int size, char* user_answer){
     return user_answer;
 } 
 
-void write_into_file (FILE* save_file, int index, struct question q[]){
+void write_info_into_file (FILE *save_file, int index, struct question q[]){
     for(int i=0;i<index;i++){ // loop for all questions
         fprintf(save_file, "##%s",q[i].question); // '##' means the beginning of a new question
 
         for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
-            if(q[i].index_correct_answer == j){
-                fprintf(save_file, "**%s", q[i].ans[j].answer_string); // '**' indicates this is the correct answer
+            if(q[i].index_correct_ans == j){
+                fprintf(save_file, "**%s", q[i].ans[j].ans_str); // '**' indicates this is the correct answer
             } else {
-                fprintf(save_file, "%s", q[i].ans[j].answer_string);
+                fprintf(save_file, "%s", q[i].ans[j].ans_str);
             }
         }
         fprintf(save_file,"\n");
     }
 }
 
+int read_info_from_file(FILE *load_file, struct question q_global[],
+                        int *index_global){
+    struct question q_aux[MAX_NUMBER_QUESTIONS];
+    int q_index_aux = 0;
+    int ans_index = 0;
+    char l_aux[MAX_CHARACTER_SIZE];
+    char line_buffer[MAX_CHARACTER_SIZE];
+
+    while (fgets(line_buffer, MAX_CHARACTER_SIZE, load_file) != NULL){
+        // Reading question
+        if((line_buffer[0]) == '#' && (line_buffer[1] == '#')){
+            ans_index = 0;
+            for (int i = 2;i<MAX_CHARACTER_SIZE;i++){
+                l_aux[i - 2] = line_buffer[i];
+                if (line_buffer[i] == '\0')
+                    break;
+            }
+            strcpy(q_aux[q_index_aux].question, l_aux);
+            continue;
+
+        // Reading question answers
+        } else if (line_buffer[0] != '\n'){
+            if((line_buffer[0]) == '*' && (line_buffer[1] == '*')){
+                for (int i = 2;i<MAX_CHARACTER_SIZE;i++){
+                    l_aux[i - 2] = line_buffer[i];
+                    if (line_buffer[i] == '\0')
+                        break;
+                }
+                strcpy(q_aux[q_index_aux].ans[ans_index].ans_str, l_aux);
+                q_aux[q_index_aux].index_correct_ans = ans_index;
+                ans_index++;
+                continue;
+            } else {
+                for(int i = 0; i<MAX_CHARACTER_SIZE;i++){
+                    l_aux[i] = line_buffer[i];
+                    if (line_buffer[i] == '\0')
+                        break;               
+                }
+                strcpy(q_aux[q_index_aux].ans[ans_index].ans_str, l_aux);
+                ans_index++;
+            }
+        } else {
+            q_index_aux++;
+        }
+    }
+    // Everything is stored in q_aux
+    load_questions_to_program(q_aux,q_global,q_index_aux, index_global);
+    return 1;
+
+}
+
 void create_question(struct question q[], int index){
-    char q_string[MAX_CHARACTER_SIZE];
-    int i = 0;
     int right_ans_index;
     int control_input = 1;
 
     // Read user input
     fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
-    for(i;i<MAX_POSSIBLE_ANSWERS;i++){
+    for(int i = 0;i<MAX_POSSIBLE_ANSWERS;i++){
         printf("Write the possible answer with index %d : ", i);
-        fgets(q[index].ans[i].answer_string,MAX_CHARACTER_SIZE,stdin);
+        fgets(q[index].ans[i].ans_str,MAX_CHARACTER_SIZE,stdin);
     }
     printf("Which one is the correct answer? \n");
     while (control_input){
         printf("Write the index [0-4] of the correct answer: ");
         scanf("%d",&right_ans_index);
         getchar();
-        if (right_ans_index <0 | right_ans_index >4){
+        if ((right_ans_index < 0) | (right_ans_index >4)){
             printf("Wrong number, choose one of the answers[0-4] \n");
         } else {
-            q[index].index_correct_answer = right_ans_index;
+            q[index].index_correct_ans = right_ans_index;
             control_input = 0;
         }
     }
@@ -105,10 +176,10 @@ void prompt_questions(struct question q[], int index){
         for(int i=0;i<index;i++){
             printf("Question %d: %s \n", i, q[i].question);
             for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
-                if(q[i].index_correct_answer == j){
-                    printf("** Answer %d: %s", j, q[i].ans[j].answer_string);               
+                if(q[i].index_correct_ans == j){
+                    printf("** Answer %d: %s", j, q[i].ans[j].ans_str);               
                 } else{
-                    printf("   Answer %d: %s", j, q[i].ans[j].answer_string);
+                    printf("   Answer %d: %s", j, q[i].ans[j].ans_str);
                 }
             }
             printf("\n");
@@ -122,7 +193,7 @@ int save_info_in_file(struct question q[], int index){
     char save_file_name[MAX_FILENAME_SIZE];
     char cwd[MAX_PATH_SIZE];
     char path_save_file [MAX_PATH_SIZE];
-    int i, waiting_for_permission, j;
+    int waiting_for_permission;
 
     if (index == 0){
         printf("There are not any questions to store to disk \n");
@@ -152,7 +223,7 @@ int save_info_in_file(struct question q[], int index){
         if (strstr(save_file_name,".txt") == NULL){
             strcat(save_file_name, ".txt");
         } 
-        
+
         strcat(path_save_file,save_file_name);
         waiting_for_permission = 1;
 
@@ -176,18 +247,48 @@ int save_info_in_file(struct question q[], int index){
                     waiting_for_permission = 0;
                     fclose(save_file);
                     save_file = fopen(path_save_file,"w+"); // open save file with write permissions
-                    write_into_file(save_file,index,q);
+                    write_info_into_file(save_file,index,q);
                     fclose(save_file);
                 }
             }
         } else {
             save_file = fopen(path_save_file, "w+");
-            write_into_file(save_file,index,q);
+            write_info_into_file(save_file,index,q);
             fclose(save_file);
 
         }
     }
 }
+
+/*
+    Gets questions info from save_file
+    Fails if files doesn't exist or file doesn't follow the correct sintaxis
+*/
+int load_info_from_file(struct question q_global[], int *index_global){
+    char file_name[MAX_FILENAME_SIZE];
+    char path_load_file[MAX_PATH_SIZE];
+    char cwd[MAX_PATH_SIZE];
+    FILE *load_file;
+
+    getcwd(cwd,sizeof(cwd)); // get current working directory
+    strcpy(path_load_file,cwd);
+    strcat(path_load_file,"/saves/");
+    get_user_input("Enter name of save file you want to load from: ", MAX_CHARACTER_SIZE, file_name);
+    printf("\n");
+    if (strstr(file_name, ".txt") == NULL){ // Checks if file ends in .txt
+        strcat(file_name, ".txt");
+    }
+    strcat(path_load_file,file_name); // Path to load file
+    
+    load_file = fopen(path_load_file, "r");
+    if(load_file == NULL){
+        printf("This file doesn't exist \n");
+        return 0;
+    } else {
+        return read_info_from_file(load_file, q_global, index_global);
+    }
+
+ }
 
 /*
     We need a global array of all questions structures
@@ -203,6 +304,7 @@ int main(){
     int run_condition = 1;
     int menu_selection;
     int index = 0;
+    int *p_index =  &index;
 
     printf("Welcome! \n");
     print_menu();
@@ -229,6 +331,14 @@ int main(){
             case 3:
                 save_info_in_file(q_global,index);
                 break;
+            
+            case 4:
+                if(load_info_from_file(q_global,p_index)){
+                    printf("Success!\n");
+                } else {
+                    printf("Operation failed\n");
+                }
+                break;
 
             case 9:
                 print_menu();
@@ -240,5 +350,4 @@ int main(){
         }
     }
     return 0;
-
 }
