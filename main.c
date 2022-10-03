@@ -50,7 +50,7 @@ void load_questions_to_program( struct question q_aux[], struct question q_globa
                                 int q_index_aux, int *index_global){
     for(int i=0;i<q_index_aux;i++){
         strcpy(q_global[i].question, q_aux[i].question);
-        for(int j = 0; j<MAX_NUMBER_QUESTIONS;j++){
+        for(int j = 0; j<MAX_POSSIBLE_ANSWERS;j++){
             strcpy(q_global[i].ans[j].ans_str, q_aux[i].ans[j].ans_str);
         }
     }
@@ -137,6 +137,7 @@ int read_info_from_file(FILE *load_file, struct question q_global[],
     }
     // Everything is stored in q_aux
     load_questions_to_program(q_aux,q_global,q_index_aux, index_global);
+    fclose(load_file);
     return 1;
 
 }
