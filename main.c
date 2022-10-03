@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 
 #define MAX_CHARACTER_SIZE 1024
 #define MAX_NUMBER_QUESTIONS 50
@@ -44,6 +45,15 @@ void print_menu(){
     printf("0: Exit program \n");
     printf("\n");
 
+}
+
+void initialize_seed(){
+    time_t t;
+    srand((unsigned) time(&t));
+}
+
+int random_num(int max_value){
+    return (rand() % max_value);
 }
 
 void load_questions_to_program( struct question q_aux[], struct question q_global[], 
