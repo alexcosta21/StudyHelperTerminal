@@ -60,6 +60,7 @@ void load_questions_to_program( struct question q_aux[], struct question q_globa
                                 int q_index_aux, int *index_global){
     for(int i=0;i<q_index_aux;i++){
         strcpy(q_global[i].question, q_aux[i].question);
+        q_global[i].index_correct_ans = q_aux[i].index_correct_ans;
         for(int j = 0; j<MAX_POSSIBLE_ANSWERS;j++){
             strcpy(q_global[i].ans[j].ans_str, q_aux[i].ans[j].ans_str);
         }
