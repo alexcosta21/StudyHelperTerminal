@@ -35,12 +35,20 @@ struct question // Struct that stores our question object
 
 };
 
+/* struct exam_q{
+    int user_ans_index; // The index of the answer the user thinks its true
+    int q_index; // The index of the question
+    int is_correct;
+
+}; */
+
 void print_menu(){
     printf("\n");
     printf("1: Create new question \n");
     printf("2: Prompt all stored questions and its answers \n");
     printf("3: Save questions to disk \n");
     printf("4: Load questions from save file \n");
+    printf("5: Enter exam mode \n");
     printf("9: Show this menu \n");
     printf("0: Exit program \n");
     printf("\n");
@@ -52,7 +60,7 @@ void initialize_seed(){
     srand((unsigned) time(&t));
 }
 
-int random_num(int max_value){
+int get_random_num(int max_value){
     return (rand() % max_value);
 }
 
@@ -154,7 +162,7 @@ int read_info_from_file(FILE *load_file, struct question q_global[],
 }
 
 void create_question(struct question q[], int index){
-    int right_ans_index;
+    int correct_ans_index;
     int control_input = 1;
 
     // Read user input
@@ -184,12 +192,12 @@ void create_question(struct question q[], int index){
     printf("Which one is the correct answer? \n");
     while (control_input){
         printf("Write the index [0-4] of the correct answer: ");
-        scanf("%d",&right_ans_index);
+        scanf("%d",&correct_ans_index);
         getchar();
-        if ((right_ans_index < 0) | (right_ans_index >4)){
+        if ((correct_ans_index < 0) | (correct_ans_index >4)){
             printf("Wrong number, choose one of the answers[0-4] \n");
         } else {
-            q[index].index_correct_ans = right_ans_index;
+            q[index].index_correct_ans = correct_ans_index;
             control_input = 0;
         }
     }
@@ -200,7 +208,7 @@ Displays all questions and its answers that are currently stored
 */
 void prompt_questions(struct question q[], int index){
     if(index == 0){
-        printf("There are not any questions stored \n");
+        printf("The program doesn't have any questions yet \n");
     } else{
         printf("Showing all stored questions: \n \n");
         for(int i=0;i<index;i++){
@@ -226,7 +234,7 @@ int save_info_in_file(struct question q[], int index){
     int waiting_for_permission;
 
     if (index == 0){
-        printf("There are not any questions to store to disk \n");
+        printf("The program doesn't have any questions to store to disk\n");
         return 0;
     } else {
         printf("Do you really want to save this session to disk? \n");
@@ -320,31 +328,94 @@ int load_info_from_file(struct question q_global[], int *index_global){
 
  }
 
+ int is_index_used(int used_indexes[], int index){
+    int is_used = 0;
+
+    if (used_indexes[index] == 1 )
+        return is_used = 1;
+    return is_used;
+ }
+
+ void empty_used_index_array(int used_indexes[], int size){
+    for(int i=0;i<size;i++){
+        used_indexes[i] = 0;
+    }
+ }
+
+int exam_mode(struct question q_global[], int index_global){
+    int control_input = 1;
+    int correct_ans_index = 0;
+    int getting_rand_nums = 1;
+    int rand_index = 0;
+    int num_total_q = index_global; 
+    int used_indexes[num_total_q]; // It stores the random indexes we have already used
+    struct question q_aux[num_total_q]; // It stores the index of the question and
+    
+    printf("Entering exam mode\n");
+    // Check if the program contains any questions
+    if(num_total_q == 0){
+        printf("The program doesn't have any questions yet\n");
+        printf("Please write some questions using option 1 ");
+        printf("or use option 4 to load questions from a save file \n");
+        printf("Exiting exam mode \n");
+        return 0;
+    } else{
+        empty_used_index_array(used_indexes, num_total_q);
+        initialize_seed();
+        while (num_total_q > 0){
+            rand_index = get_random_num(index_global);
+            if (is_index_used(used_indexes, rand_index)){ // get rand number again
+                continue;
+            } else {
+                // Prompt random question and its answers to user
+                printf("Question: %s\n", q_global[rand_index].question); 
+                for (int i = 0; i<MAX_POSSIBLE_ANSWERS;i++){
+                    printf("  Answer %d: ",i);
+                    printf("%s", q_global[rand_index].ans[i].ans_str);
+                }
+                printf("\n");
+                used_indexes[rand_index] = 1;
+                num_total_q--;
+            }
+
+        }
+        return 1;
+    }
+ }
+
+ void test_rand(){
+    int max_num;
+    initialize_seed();
+    printf("Write max num for rand generation: ");
+    scanf("%d",&max_num);
+    printf("%d \n",get_random_num(max_num));
+ }
+
 /*
     We need a global array of all questions structures
 
     Every index should point to a question structure that will
     have access to que actual question and the array of answers
-    with the correct answer index too.
+    including the correct answer index too.
 
 */
 int main(){
     struct question q_global[MAX_NUMBER_QUESTIONS];
-    int run_condition = 1;
+    int program_is_running = 1;
     int menu_selection;
     int index = 0;
     int *p_index =  &index;
 
     printf("Welcome! \n");
     print_menu();
-    while(run_condition){
+    while(program_is_running){
         printf("Choose one option: ");
         scanf("%d", &menu_selection);
         getchar(); // This consumes the '\n' char entered by the user after clicking 'ENTER'   
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
-                run_condition = 0;
+                program_is_running = 0;
                 break;
             
             case 1:
@@ -367,6 +438,10 @@ int main(){
                 } else {
                     printf("Operation failed\n");
                 }
+                break;
+
+            case 5:
+                exam_mode(q_global, index);
                 break;
 
             case 9:
