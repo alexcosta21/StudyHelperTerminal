@@ -158,7 +158,16 @@ void create_question(struct question q[], int index){
     int control_input = 1;
 
     // Read user input
-    fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
+    while(control_input){
+        fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
+        if (!strcmp(q[index].question, "\n")){
+            printf("Please this field can't be empty, try again \n");
+            printf("Write your question: ");
+            } else {
+                control_input = 0;
+            }
+    }
+
     for(int i = 0;i<MAX_POSSIBLE_ANSWERS;i++){
         control_input = 1;
         while(control_input){
