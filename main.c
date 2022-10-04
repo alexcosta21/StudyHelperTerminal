@@ -160,9 +160,18 @@ void create_question(struct question q[], int index){
     // Read user input
     fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
     for(int i = 0;i<MAX_POSSIBLE_ANSWERS;i++){
-        printf("Write the possible answer with index %d : ", i);
-        fgets(q[index].ans[i].ans_str,MAX_CHARACTER_SIZE,stdin);
+        control_input = 1;
+        while(control_input){
+            printf("Write the possible answer with index %d : ", i);
+            fgets(q[index].ans[i].ans_str,MAX_CHARACTER_SIZE,stdin);
+            if (!strcmp(q[index].ans[i].ans_str, "\n")){
+                printf("Please this field can't be empty, try again \n");
+            } else {
+                control_input = 0;
+            }
+        }
     }
+    control_input = 1;
     printf("Which one is the correct answer? \n");
     while (control_input){
         printf("Write the index [0-4] of the correct answer: ");
@@ -176,10 +185,10 @@ void create_question(struct question q[], int index){
         }
     }
 }
+
 /*
 Displays all questions and its answers that are currently stored
 */
-
 void prompt_questions(struct question q[], int index){
     if(index == 0){
         printf("There are not any questions stored \n");
@@ -310,7 +319,6 @@ int load_info_from_file(struct question q_global[], int *index_global){
     with the correct answer index too.
 
 */
-
 int main(){
     struct question q_global[MAX_NUMBER_QUESTIONS];
     int run_condition = 1;
