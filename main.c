@@ -342,15 +342,42 @@ int load_info_from_file(struct question q_global[], int *index_global){
     }
  }
 
+ void check_user_answers(struct question u_answer[], int num_questions, struct question q_global[]){
+    int correct_answers = 0;
+    int grade;
+
+    for(int i = 0;i < num_questions;i++){
+        if(q_global[i].index_correct_ans == u_answer[i].index_correct_ans){
+            correct_answers++;
+        } else {
+            printf("You've failed this question: ");
+            printf("%s\n", q_global[i].question); 
+                for (int j = 0; j<MAX_POSSIBLE_ANSWERS;j++){
+                    if (j == u_answer[i].index_correct_ans){
+                        printf("--Your Choice-- Answer[%d]: %s", j, q_global[i].ans[j].ans_str);
+                    } else if(j == q_global[i].index_correct_ans) {
+                        printf("----Correct---- Answer[%d]: %s", j, q_global[i].ans[j].ans_str);
+                    } else {
+                        printf("                Answer[%d]: %s", j, q_global[i].ans[j].ans_str);
+                    }
+                }
+                printf("\n");
+        }
+    }
+    grade = (correct_answers * 10) / num_questions;
+    printf("This are your results: \n");
+    printf("You've got %d questions right from a total of %d \n", correct_answers, num_questions);
+    printf("Your grade is: %d\n\n", grade);
+ }
+
 int exam_mode(struct question q_global[], int index_global){
+    int u_answer;
     int control_input = 1;
-    int correct_ans_index = 0;
-    int getting_rand_nums = 1;
     int rand_index = 0;
     int num_total_q = index_global; 
     int used_indexes[num_total_q]; // It stores the random indexes we have already used
-    struct question q_aux[num_total_q]; // It stores the index of the question and
-    
+    struct question user_answered_q[num_total_q]; // It stores the index of the question and
+
     printf("Entering exam mode\n");
     // Check if the program contains any questions
     if(num_total_q == 0){
@@ -376,9 +403,29 @@ int exam_mode(struct question q_global[], int index_global){
                 printf("\n");
                 used_indexes[rand_index] = 1;
                 num_total_q--;
-            }
-
+            
+            // Get user input
+            /*
+                Check if the answer is right
+                Keep track of the user grade, store the question index for later
+                View final grade at the end, show back the failed questions
+            */
+                control_input = 1;
+                while(control_input){
+                    printf("What's your answer? [0-4] : ");
+                    scanf("%d", &u_answer);
+                    getchar();
+                    if((u_answer < 0) | (u_answer > 4)){
+                        printf("Wrong index please try again \n");
+                        continue;
+                    }
+                    printf("\n");
+                    user_answered_q[rand_index].index_correct_ans = u_answer;
+                    control_input = 0;
+                }
+            }           
         }
+        check_user_answers(user_answered_q,index_global,q_global);
         return 1;
     }
  }
