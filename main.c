@@ -92,7 +92,7 @@ char* get_user_input(char* user_prompt, int size, char* user_answer){
     fgets(user_answer, size, stdin);
     user_answer[strcspn(user_answer, "\n")] = 0;
     return user_answer;
-} 
+}
 
 void write_info_into_file (FILE *save_file, int index, struct question q[]){
     for(int i=0;i<index;i++){ // loop for all questions
@@ -293,9 +293,10 @@ int save_info_in_file(struct question q[], int index){
             save_file = fopen(path_save_file, "w+");
             write_info_into_file(save_file,index,q);
             fclose(save_file);
-
         }
     }
+    printf("File saved!\n");
+    return 1;
 }
 
 /*
@@ -430,6 +431,33 @@ int exam_mode(struct question q_global[], int index_global){
     }
  }
 
+ int ask_user_save_bf_loading(int is_content_modified){
+    char user_input[MAX_CHARACTER_SIZE];
+    int control_input = 1;
+
+    if(is_content_modified){
+        printf("----WARNING----\n");
+        printf("If you proceed, you'll lose your work\n");
+        printf("Do you want to save your current questions before loading?\n");
+        get_user_input("[yes|no or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
+
+
+        while(control_input){
+            if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
+                return 0;
+
+            } else if ((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
+                get_user_input("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
+
+            } else {
+                control_input = 0;
+                return 1;
+            }
+        }
+    }
+    return 1;
+ }
+
  void test_rand(){
     int max_num;
     initialize_seed();
@@ -448,27 +476,29 @@ int exam_mode(struct question q_global[], int index_global){
 */
 int main(){
     struct question q_global[MAX_NUMBER_QUESTIONS];
-    int program_is_running = 1;
+    int is_program_running = 1;
     int menu_selection;
     int index = 0;
     int *p_index =  &index;
+    int is_content_modified = 0;
 
     printf("Welcome! \n");
     print_menu();
-    while(program_is_running){
+    while(is_program_running){
         printf("Choose one option: ");
         scanf("%d", &menu_selection);
         getchar(); // This consumes the '\n' char entered by the user after clicking 'ENTER'   
         switch (menu_selection){
             case 0:
                 printf("Bye!\n");
-                program_is_running = 0;
+                is_program_running = 0;
                 break;
             
             case 1:
                 printf("Write your question: ");
                 create_question(q_global,index);
                 index++;
+                is_content_modified = 1;
                 break;
 
             case 2:
@@ -476,12 +506,19 @@ int main(){
                 break;
 
             case 3:
-                save_info_in_file(q_global,index);
+                if(save_info_in_file(q_global,index)){
+                    is_content_modified = 0;
+                }
                 break;
             
             case 4:
+                if(ask_user_save_bf_loading(is_content_modified)){
+                    save_info_in_file(q_global,index);
+                
+                }
                 if(load_info_from_file(q_global,p_index)){
                     printf("Success!\n");
+                    is_content_modified = 0;
                 } else {
                     printf("Operation failed\n");
                 }
