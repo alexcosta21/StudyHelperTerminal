@@ -439,7 +439,7 @@ int exam_mode(struct question q_global[], int index_global){
         printf("----WARNING----\n");
         printf("If you proceed, you'll lose your work\n");
         printf("Do you want to save your current questions before loading?\n");
-        get_user_input("[yes|no or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
+        get_user_input("[yes|no] or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
 
 
         while(control_input){
