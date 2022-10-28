@@ -87,11 +87,18 @@ void parse_line(char *l_buffer, char char_del, char *ans_line, int size){
 }
 
 /* Function that returns user_answer from stdin without '\n' character */
-char* get_user_input(char* user_prompt, int size, char* user_answer){
+char* get_user_input_string(char* user_prompt, int size, char* user_answer){
     printf("%s", user_prompt);
     fgets(user_answer, size, stdin);
     user_answer[strcspn(user_answer, "\n")] = 0;
     return user_answer;
+}
+
+int get_user_input_int(char* user_promt, int size){
+    int answer;
+    printf("%s\n", user_promt);
+    scanf("%d",&answer);
+    return answer;
 }
 
 void write_info_into_file (FILE *save_file, int index, struct question q[]){
@@ -238,7 +245,7 @@ int save_info_in_file(struct question q[], int index){
         return 0;
     } else {
         printf("Do you really want to save this session to disk? \n");
-        get_user_input("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
+        get_user_input_string("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
 
         waiting_for_permission = 1;
         while(waiting_for_permission){
@@ -246,7 +253,7 @@ int save_info_in_file(struct question q[], int index){
                 return 0;           
 
             } else if((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
-                get_user_input("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
+                get_user_input_string("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
             
             } else {
                 waiting_for_permission = 0;
@@ -257,7 +264,7 @@ int save_info_in_file(struct question q[], int index){
         strcat(path_save_file,"/saves/");
         mkdir(path_save_file, 0700); // create 'saves' directory        
 
-        get_user_input("Enter name of save file: \n", MAX_CHARACTER_SIZE, save_file_name);
+        get_user_input_string("Enter name of save file: \n", MAX_CHARACTER_SIZE, save_file_name);
         if (strstr(save_file_name,".txt") == NULL){
             strcat(save_file_name, ".txt");
         } 
@@ -270,7 +277,7 @@ int save_info_in_file(struct question q[], int index){
         if (save_file != NULL){
             printf("There is already a save file with the same name \n");
             printf("Do you want to replace and override its contents? \n");
-            get_user_input("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
+            get_user_input_string("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, user_input);
 
             // Filtering user_input to aceptable answers
             while (waiting_for_permission){
@@ -279,7 +286,7 @@ int save_info_in_file(struct question q[], int index){
                     return 0;
 
                 } else if ((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
-                    get_user_input("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
+                    get_user_input_string("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
 
                 } else {
                     waiting_for_permission = 0;
@@ -312,7 +319,7 @@ int load_info_from_file(struct question q_global[], int *index_global){
     getcwd(cwd,sizeof(cwd)); // get current working directory
     strcpy(path_load_file,cwd);
     strcat(path_load_file,"/saves/");
-    get_user_input("Enter name of save file you want to load from: ", MAX_CHARACTER_SIZE, file_name);
+    get_user_input_string("Enter name of save file you want to load from: ", MAX_CHARACTER_SIZE, file_name);
     printf("\n");
     if (strstr(file_name, ".txt") == NULL){ // Checks if file ends in .txt
         strcat(file_name, ".txt");
@@ -439,7 +446,7 @@ int exam_mode(struct question q_global[], int index_global){
         printf("----WARNING----\n");
         printf("If you proceed, you'll lose your work\n");
         printf("Do you want to save your current questions before loading?\n");
-        get_user_input("[yes|no] or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
+        get_user_input_string("[yes|no] or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
 
 
         while(control_input){
@@ -447,7 +454,7 @@ int exam_mode(struct question q_global[], int index_global){
                 return 0;
 
             } else if ((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
-                get_user_input("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
+                get_user_input_string("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
 
             } else {
                 control_input = 0;
