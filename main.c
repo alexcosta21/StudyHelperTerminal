@@ -45,6 +45,7 @@ void print_menu(){
     printf("3: Save questions to disk \n");
     printf("4: Load questions from save file \n");
     printf("5: Enter exam mode \n");
+    printf("6: Remove question \n");
     printf("9: Show this menu \n");
     printf("0: Exit program \n");
     printf("\n");
@@ -98,7 +99,7 @@ void parse_line(char *l_buffer, char char_del, char *ans_line, int size){
     ans_line[strcspn(ans_line, "\n")] = 0;
 }
 
-/* Function that returns user_answer from stdin without '\n' character */
+/* Returns user_answer string from stdin without '\n' character */
 char* get_user_input_string(char* user_prompt, int size, char* user_answer){
     printf("%s", user_prompt);
     fgets(user_answer, size, stdin);
@@ -106,9 +107,10 @@ char* get_user_input_string(char* user_prompt, int size, char* user_answer){
     return user_answer;
 }
 
-int get_user_input_int(char* user_promt, int size){
+/* Returns user input as integer*/
+int get_user_input_int(char* user_promt){
     int answer;
-    printf("%s\n", user_promt);
+    printf("%s", user_promt);
     scanf("%d",&answer);
     getchar();
     return answer;
@@ -257,6 +259,79 @@ void prompt_questions(struct question q[], int index){
     }
 }
 
+/* Deletes question and its answers from the program*/
+int remove_question(struct question q_global[], int* index_global){
+    int control = 1;
+    int index;
+    char answer[MAX_CHARACTER_SIZE];
+
+    if(*index_global == -1){
+        printf("There are no questions to delete \n");
+        return 0;
+    }
+    printf("Do you really want to remove a question?\n");
+    while(control){
+        get_user_input_string("[yes|no] or [y|n]: ", MAX_CHARACTER_SIZE, answer);
+        if((strcmp(answer, "no") == 0) || (strcmp(answer, "n") == 0)){
+            return 0;           
+
+        } else if((strcmp(answer, "yes") != 0 && (strcmp(answer,"y") != 0))){
+            get_user_input_string("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, answer);
+        
+        } else {
+            break;
+        }
+    }
+    while(control){
+        index = get_user_input_int("Enter the question index you want to remove: ");
+        printf("\n");
+        if (index > *index_global|| index < 0){
+            printf("Wrong index \n");
+            prompt_questions(q_global, *index_global);
+        } else {
+            control = 0;
+        }
+    }
+    // Case deleting question from array with 1 question left
+    if((index == 0) && (*index_global == 0)){
+        *index_global = -1;
+        return 1;
+    }
+
+    // Case deleting first question
+    // Copying all other questions in a new array
+    if(index == 0){
+        for(int i = 1;i<= *index_global;i++){
+            q_global[i-1].index_correct_ans = q_global[i].index_correct_ans; 
+            strcpy(q_global[i-1].question, q_global[i].question);
+            for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
+                strcpy(q_global[i-1].ans[j].ans_str, q_global[i].ans[j].ans_str);
+            }
+        }
+        *index_global = *index_global - 1;
+        return 1;
+    // Case deleting the last question
+    } else if (index == *index_global){
+        *index_global = *index_global - 1;
+        return 1;    
+
+    // Case deleting a question that has a next and previous question
+    } else {
+        for(int i = 0; i<= *index_global;i++){
+            if(i >= index){
+                q_global[i].index_correct_ans = q_global[i+1].index_correct_ans; 
+                strcpy(q_global[i].question, q_global[i+1].question);
+                for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
+                    strcpy(q_global[i].ans[j].ans_str, q_global[i+1].ans[j].ans_str);
+                }
+            }
+
+        }
+        *index_global = *index_global - 1;
+        return 1;
+    }
+}
+
 /*
     Saves local questions to a save file 
 */
@@ -356,7 +431,7 @@ int load_info_from_file(struct question q_global[], int *index_global){
     
     load_file = fopen(path_load_file, "r");
     if(load_file == NULL){
-        printf("This file doesn't exist \n");
+        printf("That file doesn't exist \n");
         return 0;
     } else {
         return read_info_from_file(load_file, q_global, index_global);
@@ -456,14 +531,8 @@ int exam_mode(struct question q_global[], int index_global){
                 printf("\n");
                 used_indexes[rand_index] = 1;
                 num_total_q--;
-            
-            // Get user input
-            /*
-                Check if the answer is right
-                Keep track of the user grade, store the question index for later
-                View final grade at the end, show back the failed questions
-            */
                 control_input = 1;
+
                 while(control_input){
                     printf("What's your answer? [0-4] : ");
                     scanf("%d", &u_answer_to_check);
@@ -578,6 +647,15 @@ int main(){
 
             case 5:
                 exam_mode(q_global, index);
+                break;
+
+            case 6: 
+                if (remove_question(q_global,p_index)){
+                    is_content_modified = 1;
+                    printf("Success!\n");
+                } else {
+                    printf("Operation canceled\n");
+                }
                 break;
 
             case 9:
