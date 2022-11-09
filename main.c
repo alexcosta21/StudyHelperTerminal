@@ -319,7 +319,7 @@ int load_info_from_file(struct question q_global[], int *index_global){
     getcwd(cwd,sizeof(cwd)); // get current working directory
     strcpy(path_load_file,cwd);
     strcat(path_load_file,"/saves/");
-    get_user_input_string("Enter name of save file you want to load from: ", MAX_CHARACTER_SIZE, file_name);
+    get_user_input_string("Enter the filename to load from: ", MAX_CHARACTER_SIZE, file_name);
     printf("\n");
     if (strstr(file_name, ".txt") == NULL){ // Checks if file ends in .txt
         strcat(file_name, ".txt");
@@ -438,28 +438,24 @@ int exam_mode(struct question q_global[], int index_global){
     }
  }
 
- int ask_user_save_bf_loading(int is_content_modified){
+ int ask_user_save_bf_loading(){
     char user_input[MAX_CHARACTER_SIZE];
     int control_input = 1;
 
-    if(is_content_modified){
-        printf("----WARNING----\n");
-        printf("If you proceed, you'll lose your work\n");
-        printf("Do you want to save your current questions before loading?\n");
-        get_user_input_string("[yes|no] or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
+    printf("----WARNING----\n");
+    printf("If you proceed, you'll lose your work\n");
+    printf("Do you want to save your current questions before loading?\n");
+    get_user_input_string("[yes|no] or [y|n]: ",MAX_CHARACTER_SIZE,user_input);
 
+    while(control_input){
+        if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
+            return 0;
 
-        while(control_input){
-            if((strcmp(user_input, "no") == 0) || (strcmp(user_input, "n") == 0)){
-                return 0;
+        } else if ((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
+            get_user_input_string("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
 
-            } else if ((strcmp(user_input, "yes") != 0 && (strcmp(user_input,"y") != 0))){
-                get_user_input_string("Please answer [no|n] or [yes|y] to continue \n", MAX_CHARACTER_SIZE, user_input);
-
-            } else {
-                control_input = 0;
-                return 1;
-            }
+        } else {
+            control_input = 0;
         }
     }
     return 1;
@@ -519,9 +515,10 @@ int main(){
                 break;
             
             case 4:
-                if(ask_user_save_bf_loading(is_content_modified)){
-                    save_info_in_file(q_global,index);
-                
+                if(is_content_modified){
+                    if(ask_user_save_bf_loading()){
+                        save_info_in_file(q_global,index);
+                    }
                 }
                 if(load_info_from_file(q_global,p_index)){
                     printf("Success!\n");
