@@ -23,7 +23,7 @@
 #define MAX_FILENAME_SIZE 255
 #define MAX_PATH_SIZE 1024
 
-struct answers{
+struct answers{ // Struct that stores our answers object
     char ans_str[MAX_CHARACTER_SIZE];
 };
 
@@ -35,13 +35,9 @@ struct question // Struct that stores our question object
 
 };
 
-/* struct exam_q{
-    int user_ans_index; // The index of the answer the user thinks its true
-    int q_index; // The index of the question
-    int is_correct;
-
-}; */
-
+/*
+    Prints the programs menu
+*/
 void print_menu(){
     printf("\n");
     printf("1: Create new question \n");
@@ -55,18 +51,29 @@ void print_menu(){
 
 }
 
+/*
+    Initialize a new seed
+*/
 void initialize_seed(){
     time_t t;
     srand((unsigned) time(&t));
 }
 
+/*
+    Returns a random generated number
+    up to max value
+*/
 int get_random_num(int max_value){
     return (rand() % max_value);
 }
 
+/*
+    Copies the parsed questions into 
+    our global questions array
+*/
 void load_questions_to_program( struct question q_aux[], struct question q_global[], 
                                 int q_index_aux, int *index_global){
-    for(int i=0;i<q_index_aux;i++){
+    for(int i=0;i<=q_index_aux;i++){
         strcpy(q_global[i].question, q_aux[i].question);
         q_global[i].index_correct_ans = q_aux[i].index_correct_ans;
         for(int j = 0; j<MAX_POSSIBLE_ANSWERS;j++){
@@ -76,6 +83,11 @@ void load_questions_to_program( struct question q_aux[], struct question q_globa
     *index_global = q_index_aux;
 } 
 
+/*
+    Removes special characters used in save
+    files format in order to load them
+    into the program
+*/
 void parse_line(char *l_buffer, char char_del, char *ans_line, int size){
 
     if((l_buffer[0]) == char_del && (l_buffer[1]) == char_del){
@@ -98,9 +110,14 @@ int get_user_input_int(char* user_promt, int size){
     int answer;
     printf("%s\n", user_promt);
     scanf("%d",&answer);
+    getchar();
     return answer;
 }
 
+/*
+    Writes questions and its answers with the 
+    correct format into a file
+*/
 void write_info_into_file (FILE *save_file, int index, struct question q[]){
     for(int i=0;i<index;i++){ // loop for all questions
         fprintf(save_file, "##%s",q[i].question); // '##' means the beginning of a new question
@@ -116,6 +133,9 @@ void write_info_into_file (FILE *save_file, int index, struct question q[]){
     }
 }
 
+/*
+    Parses the file content to our question structure 
+*/
 int read_info_from_file(FILE *load_file, struct question q_global[],
                         int *index_global){
     struct question q_aux[MAX_NUMBER_QUESTIONS];
@@ -162,20 +182,24 @@ int read_info_from_file(FILE *load_file, struct question q_global[],
         }
     }
     // Everything is stored in q_aux
-    load_questions_to_program(q_aux,q_global,q_index_aux, index_global);
+    load_questions_to_program(q_aux,q_global,q_index_aux - 1, index_global);
     fclose(load_file);
     return 1;
 
 }
 
-void create_question(struct question q[], int index){
+/*
+    Create a new question
+*/
+void create_question(struct question q[], int* index){
     int correct_ans_index;
     int control_input = 1;
 
+    *index = *index + 1;
     // Read user input
     while(control_input){
-        fgets(q[index].question,MAX_CHARACTER_SIZE,stdin);
-        if (!strcmp(q[index].question, "\n")){
+        fgets(q[*index].question,MAX_CHARACTER_SIZE,stdin);
+        if (!strcmp(q[*index].question, "\n")){
             printf("Please this field can't be empty, try again \n");
             printf("Write your question: ");
             } else {
@@ -187,8 +211,8 @@ void create_question(struct question q[], int index){
         control_input = 1;
         while(control_input){
             printf("Write the possible answer with index %d : ", i);
-            fgets(q[index].ans[i].ans_str,MAX_CHARACTER_SIZE,stdin);
-            if (!strcmp(q[index].ans[i].ans_str, "\n")){
+            fgets(q[*index].ans[i].ans_str,MAX_CHARACTER_SIZE,stdin);
+            if (!strcmp(q[*index].ans[i].ans_str, "\n")){
                 printf("Please this field can't be empty, try again \n");
             } else {
                 control_input = 0;
@@ -204,7 +228,7 @@ void create_question(struct question q[], int index){
         if ((correct_ans_index < 0) | (correct_ans_index >4)){
             printf("Wrong number, choose one of the answers[0-4] \n");
         } else {
-            q[index].index_correct_ans = correct_ans_index;
+            q[*index].index_correct_ans = correct_ans_index;
             control_input = 0;
         }
     }
@@ -214,13 +238,14 @@ void create_question(struct question q[], int index){
 Displays all questions and its answers that are currently stored
 */
 void prompt_questions(struct question q[], int index){
-    if(index == 0){
+    if(index == -1){
         printf("The program doesn't have any questions yet \n");
-    } else{
+
+    } else {
         printf("Showing all stored questions: \n \n");
-        for(int i=0;i<index;i++){
+        for(int i=0;i<=index;i++){
             printf("Question %d: %s \n", i, q[i].question);
-            for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
+             for(int j=0;j<MAX_POSSIBLE_ANSWERS;j++){
                 if(q[i].index_correct_ans == j){
                     printf("** Answer %d: %s", j, q[i].ans[j].ans_str);               
                 } else{
@@ -232,6 +257,9 @@ void prompt_questions(struct question q[], int index){
     }
 }
 
+/*
+    Saves local questions to a save file 
+*/
 int save_info_in_file(struct question q[], int index){
     FILE *save_file;
     char user_input[MAX_FILENAME_SIZE];
@@ -240,7 +268,7 @@ int save_info_in_file(struct question q[], int index){
     char path_save_file [MAX_PATH_SIZE];
     int waiting_for_permission;
 
-    if (index == 0){
+    if (index == -1){
         printf("The program doesn't have any questions to store to disk\n");
         return 0;
     } else {
@@ -264,7 +292,7 @@ int save_info_in_file(struct question q[], int index){
         strcat(path_save_file,"/saves/");
         mkdir(path_save_file, 0700); // create 'saves' directory        
 
-        get_user_input_string("Enter name of save file: \n", MAX_CHARACTER_SIZE, save_file_name);
+        get_user_input_string("Enter name of save file: ", MAX_CHARACTER_SIZE, save_file_name);
         if (strstr(save_file_name,".txt") == NULL){
             strcat(save_file_name, ".txt");
         } 
@@ -336,6 +364,10 @@ int load_info_from_file(struct question q_global[], int *index_global){
 
  }
 
+/*
+    Checks in the randomly generated number
+    had already been used
+*/
  int is_index_used(int used_indexes[], int index){
     int is_used = 0;
 
@@ -344,24 +376,31 @@ int load_info_from_file(struct question q_global[], int *index_global){
     return is_used;
  }
 
+/*
+    Empties used index array
+*/
  void empty_used_index_array(int used_indexes[], int size){
     for(int i=0;i<size;i++){
         used_indexes[i] = 0;
     }
  }
 
- void check_user_answers(struct question u_answer[], int num_questions, struct question q_global[]){
+/*
+    Checks if the user answers are correct 
+    Prints failed questions signalling the correct answer
+*/
+ void check_user_answers(struct question u_answer_to_check[], int num_questions, struct question q_global[]){
     int correct_answers = 0;
     int grade;
 
     for(int i = 0;i < num_questions;i++){
-        if(q_global[i].index_correct_ans == u_answer[i].index_correct_ans){
+        if(q_global[i].index_correct_ans == u_answer_to_check[i].index_correct_ans){
             correct_answers++;
         } else {
             printf("You've failed this question: ");
             printf("%s\n", q_global[i].question); 
                 for (int j = 0; j<MAX_POSSIBLE_ANSWERS;j++){
-                    if (j == u_answer[i].index_correct_ans){
+                    if (j == u_answer_to_check[i].index_correct_ans){
                         printf("--Your Choice-- Answer[%d]: %s", j, q_global[i].ans[j].ans_str);
                     } else if(j == q_global[i].index_correct_ans) {
                         printf("----Correct---- Answer[%d]: %s", j, q_global[i].ans[j].ans_str);
@@ -374,21 +413,25 @@ int load_info_from_file(struct question q_global[], int *index_global){
     }
     grade = (correct_answers * 10) / num_questions;
     printf("This are your results: \n");
-    printf("You've got %d questions right from a total of %d \n", correct_answers, num_questions);
+    printf("You've got %d questions right from a total of %d questions \n", correct_answers, num_questions);
     printf("Your grade is: %d\n\n", grade);
  }
 
+/*
+    Prompts questions randomly for the user
+    to answer, in the the user gets a grade
+*/
 int exam_mode(struct question q_global[], int index_global){
-    int u_answer;
+    int u_answer_to_check;
     int control_input = 1;
     int rand_index = 0;
-    int num_total_q = index_global; 
+    int num_total_q = index_global + 1; 
     int used_indexes[num_total_q]; // It stores the random indexes we have already used
     struct question user_answered_q[num_total_q]; // It stores the index of the question and
 
     printf("Entering exam mode\n");
     // Check if the program contains any questions
-    if(num_total_q == 0){
+    if(num_total_q == -1){
         printf("The program doesn't have any questions yet\n");
         printf("Please write some questions using option 1 ");
         printf("or use option 4 to load questions from a save file \n");
@@ -397,9 +440,11 @@ int exam_mode(struct question q_global[], int index_global){
     } else{
         empty_used_index_array(used_indexes, num_total_q);
         initialize_seed();
-        while (num_total_q > 0){
-            rand_index = get_random_num(index_global);
+        while (num_total_q > -1){
+            rand_index = get_random_num(index_global + 1);
             if (is_index_used(used_indexes, rand_index)){ // get rand number again
+                if (num_total_q == 0)
+                    break;
                 continue;
             } else {
                 // Prompt random question and its answers to user
@@ -421,23 +466,27 @@ int exam_mode(struct question q_global[], int index_global){
                 control_input = 1;
                 while(control_input){
                     printf("What's your answer? [0-4] : ");
-                    scanf("%d", &u_answer);
+                    scanf("%d", &u_answer_to_check);
                     getchar();
-                    if((u_answer < 0) | (u_answer > 4)){
+                    if((u_answer_to_check < 0) | (u_answer_to_check > 4)){
                         printf("Wrong index please try again \n");
                         continue;
                     }
                     printf("\n");
-                    user_answered_q[rand_index].index_correct_ans = u_answer;
+                    user_answered_q[rand_index].index_correct_ans = u_answer_to_check;
                     control_input = 0;
                 }
             }           
         }
-        check_user_answers(user_answered_q,index_global,q_global);
+        num_total_q = index_global + 1;
+        check_user_answers(user_answered_q,num_total_q,q_global);
         return 1;
     }
  }
 
+/*
+    Warns user to save before loading from file
+*/
  int ask_user_save_bf_loading(){
     char user_input[MAX_CHARACTER_SIZE];
     int control_input = 1;
@@ -481,7 +530,7 @@ int main(){
     struct question q_global[MAX_NUMBER_QUESTIONS];
     int is_program_running = 1;
     int menu_selection;
-    int index = 0;
+    int index = -1; // initial non valid value
     int *p_index =  &index;
     int is_content_modified = 0;
 
@@ -499,8 +548,7 @@ int main(){
             
             case 1:
                 printf("Write your question: ");
-                create_question(q_global,index);
-                index++;
+                create_question(q_global,p_index);
                 is_content_modified = 1;
                 break;
 
