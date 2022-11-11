@@ -413,21 +413,26 @@ int save_info_in_file(struct question q[], int index){
     Gets questions info from save_file
     Fails if files doesn't exist or file doesn't follow the correct sintaxis
 */
-int load_info_from_file(struct question q_global[], int *index_global){
+int load_info_from_file(struct question q_global[], int *index_global, char l_from_args_path[]){
     char file_name[MAX_FILENAME_SIZE];
     char path_load_file[MAX_PATH_SIZE];
     char cwd[MAX_PATH_SIZE];
     FILE *load_file;
 
-    getcwd(cwd,sizeof(cwd)); // get current working directory
-    strcpy(path_load_file,cwd);
-    strcat(path_load_file,"/saves/");
-    get_user_input_string("Enter the filename to load from: ", MAX_CHARACTER_SIZE, file_name);
-    printf("\n");
-    if (strstr(file_name, ".txt") == NULL){ // Checks if file ends in .txt
-        strcat(file_name, ".txt");
+    if(l_from_args_path == NULL){
+        getcwd(cwd,sizeof(cwd)); // get current working directory
+        strcpy(path_load_file,cwd);
+        strcat(path_load_file,"/saves/");
+        get_user_input_string("Enter the filename to load from: ", MAX_CHARACTER_SIZE, file_name);
+        printf("\n");
+        if (strstr(file_name, ".txt") == NULL){ // Checks if file ends in .txt
+            strcat(file_name, ".txt"); // If not, attach .txt at the end
+        }
+        strcat(path_load_file,file_name); // Path to load file
+    } else{
+        strcpy(path_load_file, l_from_args_path);
     }
-    strcat(path_load_file,file_name); // Path to load file
+    
     
     load_file = fopen(path_load_file, "r");
     if(load_file == NULL){
@@ -595,7 +600,7 @@ int exam_mode(struct question q_global[], int index_global){
     including the correct answer index too.
 
 */
-int main(){
+int main(int argc, char* argv[]){
     struct question q_global[MAX_NUMBER_QUESTIONS];
     int is_program_running = 1;
     int menu_selection;
@@ -604,6 +609,13 @@ int main(){
     int is_content_modified = 0;
 
     printf("Welcome! \n");
+    if(!strcmp(argv[1], "-l")){
+        printf("Loading from %s\n", argv[2]);
+        if(load_info_from_file(q_global, p_index, argv[2])){
+            printf("Success!\n");
+        }
+    } 
+
     print_menu();
     while(is_program_running){
         printf("Choose one option: ");
@@ -637,7 +649,7 @@ int main(){
                         save_info_in_file(q_global,index);
                     }
                 }
-                if(load_info_from_file(q_global,p_index)){
+                if(load_info_from_file(q_global,p_index, NULL)){
                     printf("Success!\n");
                     is_content_modified = 0;
                 } else {
