@@ -593,6 +593,21 @@ int exam_mode(struct question q_global[], int index_global){
  }
 
 /*
+    Manages program arguments
+*/
+ void manage_args(int argc, char* argv[],
+                    struct question q_global[], int* index){
+    for(int i = 1;i < argc; i++){
+        if((!strcmp(argv[i], "-l")) && (i % 2 != 0)){
+            printf("Loading from %s\n", argv[i + 1]);
+            if(load_info_from_file(q_global, index, argv[i + 1])){
+                printf("Success!\n");
+            }
+        }
+    }
+ }
+
+/*
     We need a global array of all questions structures
 
     Every index should point to a question structure that will
@@ -609,12 +624,9 @@ int main(int argc, char* argv[]){
     int is_content_modified = 0;
 
     printf("Welcome! \n");
-    if(!strcmp(argv[1], "-l")){
-        printf("Loading from %s\n", argv[2]);
-        if(load_info_from_file(q_global, p_index, argv[2])){
-            printf("Success!\n");
-        }
-    } 
+    if(argc != 1){
+        manage_args(argc, argv, q_global, p_index);
+    }
 
     print_menu();
     while(is_program_running){
